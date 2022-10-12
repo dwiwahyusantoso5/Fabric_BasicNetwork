@@ -1,7 +1,8 @@
 #!/bin/bash
+export PATH=$PATH:/home/a/hyperledger-fabric/fabric-samples/bin
 
 export CORE_PEER_TLS_ENABLED=true
-export ORDERER_CA=${PWD}/artifacts/channel/crypto-config/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem
+export ORDERER_CA=${PWD}/artifacts/channel/crypto-config/ordererOrganizations/example.com/orderers/orderer1.example.com/msp/tlscacerts/tlsca.example.com-cert.pem
 export PEER0_ORG1_CA=${PWD}/artifacts/channel/crypto-config/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/tls/ca.crt
 export PEER0_ORG2_CA=${PWD}/artifacts/channel/crypto-config/peerOrganizations/org2.example.com/peers/peer0.org2.example.com/tls/ca.crt
 export FABRIC_CFG_PATH=${PWD}/artifacts/channel/config/
@@ -12,7 +13,7 @@ export CHANNEL_NAME=mychannel
 
 setGlobalsForOrderer() {
     export CORE_PEER_LOCALMSPID="OrdererMSP"
-    export CORE_PEER_TLS_ROOTCERT_FILE=${PWD}/artifacts/channel/crypto-config/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem
+    export CORE_PEER_TLS_ROOTCERT_FILE=${PWD}/artifacts/channel/crypto-config/ordererOrganizations/example.com/orderers/orderer1.example.com/msp/tlscacerts/tlsca.example.com-cert.pem
     export CORE_PEER_MSPCONFIGPATH=${PWD}/artifacts/channel/crypto-config/ordererOrganizations/example.com/users/Admin@example.com/msp
 
 }
@@ -61,6 +62,7 @@ presetup() {
 CHANNEL_NAME="mychannel"
 CC_RUNTIME_LANGUAGE="golang"
 VERSION="1"
+SEQUENCE=1
 CC_SRC_PATH="./artifacts/src/github.com/fabcar/go"
 CC_NAME="fabcar"
 
@@ -113,11 +115,12 @@ approveForMyOrg1() {
     setGlobalsForPeer0Org1
     # set -x
     peer lifecycle chaincode approveformyorg -o localhost:7050 \
-        --ordererTLSHostnameOverride orderer.example.com --tls \
+        --ordererTLSHostnameOverride orderer1.example.com --tls \
         --collections-config $PRIVATE_DATA_CONFIG \
         --cafile $ORDERER_CA --channelID $CHANNEL_NAME --name ${CC_NAME} --version ${VERSION} \
         --init-required --package-id ${PACKAGE_ID} \
         --sequence ${VERSION}
+
     # set +x
 
     echo "===================== chaincode approved from org 1 ===================== "
@@ -127,11 +130,11 @@ approveForMyOrg1() {
 getBlock() {
     setGlobalsForPeer0Org1
     # peer channel fetch 10 -c mychannel -o localhost:7050 \
-    #     --ordererTLSHostnameOverride orderer.example.com --tls \
+    #     --ordererTLSHostnameOverride orderer1.example.com --tls \
     #     --cafile $ORDERER_CA
 
     peer channel getinfo  -c mychannel -o localhost:7050 \
-        --ordererTLSHostnameOverride orderer.example.com --tls \
+        --ordererTLSHostnameOverride orderer1.example.com --tls \
         --cafile $ORDERER_CA
 }
 
@@ -162,7 +165,7 @@ approveForMyOrg2() {
     setGlobalsForPeer0Org2
 
     peer lifecycle chaincode approveformyorg -o localhost:7050 \
-        --ordererTLSHostnameOverride orderer.example.com --tls $CORE_PEER_TLS_ENABLED \
+        --ordererTLSHostnameOverride orderer1.example.com --tls $CORE_PEER_TLS_ENABLED \
         --cafile $ORDERER_CA --channelID $CHANNEL_NAME --name ${CC_NAME} \
         --collections-config $PRIVATE_DATA_CONFIG \
         --version ${VERSION} --init-required --package-id ${PACKAGE_ID} \
@@ -173,7 +176,7 @@ approveForMyOrg2() {
 
 # approveForMyOrg2
 
-checkCommitReadyness() {
+checkCommitReadiness() {
 
     setGlobalsForPeer0Org1
     peer lifecycle chaincode checkcommitreadiness --channelID $CHANNEL_NAME \
@@ -183,11 +186,11 @@ checkCommitReadyness() {
     echo "===================== checking commit readyness from org 1 ===================== "
 }
 
-# checkCommitReadyness
+# checkCommitReadiness
 
 commitChaincodeDefination() {
     setGlobalsForPeer0Org1
-    peer lifecycle chaincode commit -o localhost:7050 --ordererTLSHostnameOverride orderer.example.com \
+    peer lifecycle chaincode commit -o localhost:7050 --ordererTLSHostnameOverride orderer1.example.com \
         --tls $CORE_PEER_TLS_ENABLED --cafile $ORDERER_CA \
         --channelID $CHANNEL_NAME --name ${CC_NAME} \
         --collections-config $PRIVATE_DATA_CONFIG \
@@ -210,7 +213,7 @@ queryCommitted() {
 chaincodeInvokeInit() {
     setGlobalsForPeer0Org1
     peer chaincode invoke -o localhost:7050 \
-        --ordererTLSHostnameOverride orderer.example.com \
+        --ordererTLSHostnameOverride orderer1.example.com \
         --tls $CORE_PEER_TLS_ENABLED --cafile $ORDERER_CA \
         -C $CHANNEL_NAME -n ${CC_NAME} \
         --peerAddresses localhost:7051 --tlsRootCertFiles $PEER0_ORG1_CA \
@@ -223,7 +226,7 @@ chaincodeInvokeInit() {
 
 chaincodeInvoke() {
     # setGlobalsForPeer0Org1
-    # peer chaincode invoke -o localhost:7050 --ordererTLSHostnameOverride orderer.example.com \
+    # peer chaincode invoke -o localhost:7050 --ordererTLSHostnameOverride orderer1.example.com \
     # --tls $CORE_PEER_TLS_ENABLED --cafile $ORDERER_CA -C $CHANNEL_NAME -n ${CC_NAME} \
     # --peerAddresses localhost:7051 --tlsRootCertFiles $PEER0_ORG1_CA \
     # --peerAddresses localhost:9051 --tlsRootCertFiles $PEER0_ORG2_CA  \
@@ -233,7 +236,7 @@ chaincodeInvoke() {
 
     ## Create Car
     # peer chaincode invoke -o localhost:7050 \
-    #     --ordererTLSHostnameOverride orderer.example.com \
+    #     --ordererTLSHostnameOverride orderer1.example.com \
     #     --tls $CORE_PEER_TLS_ENABLED \
     #     --cafile $ORDERER_CA \
     #     -C $CHANNEL_NAME -n ${CC_NAME}  \
@@ -244,7 +247,7 @@ chaincodeInvoke() {
 
     ## Init ledger
     peer chaincode invoke -o localhost:7050 \
-        --ordererTLSHostnameOverride orderer.example.com \
+        --ordererTLSHostnameOverride orderer1.example.com \
         --tls $CORE_PEER_TLS_ENABLED \
         --cafile $ORDERER_CA \
         -C $CHANNEL_NAME -n ${CC_NAME} \
@@ -255,7 +258,7 @@ chaincodeInvoke() {
     ## Add private data
     export CAR=$(echo -n "{\"key\":\"1111\", \"make\":\"Tesla\",\"model\":\"Tesla A1\",\"color\":\"White\",\"owner\":\"pavan\",\"price\":\"10000\"}" | base64 | tr -d \\n)
     peer chaincode invoke -o localhost:7050 \
-        --ordererTLSHostnameOverride orderer.example.com \
+        --ordererTLSHostnameOverride orderer1.example.com \
         --tls $CORE_PEER_TLS_ENABLED \
         --cafile $ORDERER_CA \
         -C $CHANNEL_NAME -n ${CC_NAME} \
@@ -290,7 +293,7 @@ chaincodeQuery() {
 # packageChaincode
 # installChaincode
 # queryInstalled
-# approveForMyOrg1
+approveForMyOrg1
 # checkCommitReadyness
 # approveForMyOrg2
 # checkCommitReadyness
