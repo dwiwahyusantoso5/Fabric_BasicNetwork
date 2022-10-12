@@ -1,3 +1,5 @@
+#!/bin/bash
+
 export CORE_PEER_TLS_ENABLED=true
 export ORDERER_CA=${PWD}/artifacts/channel/crypto-config/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem
 export PEER0_ORG1_CA=${PWD}/artifacts/channel/crypto-config/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/tls/ca.crt
@@ -77,17 +79,17 @@ installChaincode() {
     peer lifecycle chaincode install ${CC_NAME}.tar.gz
     echo "===================== Chaincode is installed on peer0.org1 ===================== "
 
-    # setGlobalsForPeer1Org1
-    # peer lifecycle chaincode install ${CC_NAME}.tar.gz
-    # echo "===================== Chaincode is installed on peer1.org1 ===================== "
+    setGlobalsForPeer1Org1
+    peer lifecycle chaincode install ${CC_NAME}.tar.gz
+    echo "===================== Chaincode is installed on peer1.org1 ===================== "
 
     setGlobalsForPeer0Org2
     peer lifecycle chaincode install ${CC_NAME}.tar.gz
     echo "===================== Chaincode is installed on peer0.org2 ===================== "
 
-    # setGlobalsForPeer1Org2
-    # peer lifecycle chaincode install ${CC_NAME}.tar.gz
-    # echo "===================== Chaincode is installed on peer1.org2 ===================== "
+    setGlobalsForPeer1Org2
+    peer lifecycle chaincode install ${CC_NAME}.tar.gz
+    echo "===================== Chaincode is installed on peer1.org2 ===================== "
 }
 
 # installChaincode
@@ -285,17 +287,17 @@ chaincodeQuery() {
 # Run this function if you add any new dependency in chaincode
 # presetup
 
-packageChaincode
-installChaincode
-queryInstalled
-approveForMyOrg1
-checkCommitReadyness
-approveForMyOrg2
-checkCommitReadyness
-commitChaincodeDefination
-queryCommitted
-chaincodeInvokeInit
-sleep 5
-chaincodeInvoke
-sleep 3
-chaincodeQuery
+# packageChaincode
+# installChaincode
+# queryInstalled
+# approveForMyOrg1
+# checkCommitReadyness
+# approveForMyOrg2
+# checkCommitReadyness
+# commitChaincodeDefination
+# queryCommitted
+# chaincodeInvokeInit
+# sleep 5
+# chaincodeInvoke
+# sleep 3
+# chaincodeQuery
